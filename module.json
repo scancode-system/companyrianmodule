@@ -1,0 +1,13 @@
+{
+    "name": "CompanyRian",
+    "alias": "companyrian",
+    "description": "",
+    "keywords": [],
+    "order": 0,
+    "providers": [
+        "Modules\\CompanyRian\\Providers\\CompanyRianServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
