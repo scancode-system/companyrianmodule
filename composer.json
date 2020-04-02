@@ -22,5 +22,8 @@
             "Modules\\CompanyRian\\": ""
         }
     },
-    "type": "laravel-module"
+    "type": "laravel-module",
+    "require": {
+        "scancode-system/scancode-base-module":"^1.0"
+    }
 }
