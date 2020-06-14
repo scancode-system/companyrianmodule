@@ -8,13 +8,22 @@ use Illuminate\Database\Eloquent\Factory;
 class CompanyRianServiceProvider extends ServiceProvider
 {
     /**
+     * @var string $moduleName
+     */
+    protected $moduleName = 'CompanyRian';
+
+    /**
+     * @var string $moduleNameLower
+     */
+    protected $moduleNameLower = 'companyrian';
+
+    /**
      * Boot the application events.
      *
      * @return void
      */
     public function boot()
     {
-        $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
         $this->registerFactories();
@@ -39,11 +48,17 @@ class CompanyRianServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         $this->publishes([
+            module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower . '.php'),
+        ], 'config');
+        $this->mergeConfigFrom(
+            module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower
+        );
+        /*$this->publishes([
             module_path('CompanyRian', 'Config/config.php') => config_path('companyrian.php'),
         ], 'config');
         $this->mergeConfigFrom(
             module_path('CompanyRian', 'Config/config.php'), 'companyrian'
-        );
+        );*/
     }
 
     /**
@@ -53,7 +68,17 @@ class CompanyRianServiceProvider extends ServiceProvider
      */
     public function registerViews()
     {
-        $viewPath = resource_path('views/modules/companyrian');
+        $viewPath = resource_path('views/modules/' . $this->moduleNameLower);
+
+        $sourcePath = module_path($this->moduleName, 'Resources/views');
+
+        $this->publishes([
+            $sourcePath => $viewPath
+        ], ['views', $this->moduleNameLower . '-module-views']);
+
+        $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->moduleNameLower);
+
+        /*$viewPath = resource_path('views/modules/companyrian');
 
         $sourcePath = module_path('CompanyRian', 'Resources/views');
 
@@ -63,24 +88,10 @@ class CompanyRianServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
             return $path . '/modules/companyrian';
-        }, \Config::get('view.paths')), [$sourcePath]), 'companyrian');
+        }, \Config::get('view.paths')), [$sourcePath]), 'companyrian');*/
     }
 
-    /**
-     * Register translations.
-     *
-     * @return void
-     */
-    public function registerTranslations()
-    {
-        $langPath = resource_path('lang/modules/companyrian');
 
-        if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, 'companyrian');
-        } else {
-            $this->loadTranslationsFrom(module_path('CompanyRian', 'Resources/lang'), 'companyrian');
-        }
-    }
 
     /**
      * Register an additional directory of factories.
@@ -90,8 +101,12 @@ class CompanyRianServiceProvider extends ServiceProvider
     public function registerFactories()
     {
         if (! app()->environment('production') && $this->app->runningInConsole()) {
-            app(Factory::class)->load(module_path('CompanyRian', 'Database/factories'));
+            app(Factory::class)->load(module_path($this->moduleName, 'Database/factories'));
         }
+
+        /*if (! app()->environment('production') && $this->app->runningInConsole()) {
+            app(Factory::class)->load(module_path('CompanyRian', 'Database/factories'));
+        }*/
     }
 
     /**
@@ -102,5 +117,16 @@ class CompanyRianServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    private function getPublishableViewPaths(): array
+    {
+        $paths = [];
+        foreach (\Config::get('view.paths') as $path) {
+            if (is_dir($path . '/modules/' . $this->moduleNameLower)) {
+                $paths[] = $path . '/modules/' . $this->moduleNameLower;
+            }
+        }
+        return $paths;
     }
 }
