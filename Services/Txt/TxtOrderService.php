@@ -1,17 +1,17 @@
 <?php
 
-namespace Modules\CompanyRian\Services;
+namespace Modules\CompanyRian\Services\Txt;
 
 use Illuminate\Support\Facades\Storage;
 use Modules\Order\Repositories\OrderRepository;
+use Modules\Dashboard\Services\Txt\TxtService;
 use  ZipArchive;
 
-class TxtOrderService 
+class TxtOrderService extends TxtService
 {
 
-	public function run()
+	public function build()
 	{
-		Storage::deleteDirectory('txt-rian');
 		$orders = OrderRepository::loadClosedOrders();
 
 		foreach ($orders as $order) 
@@ -22,9 +22,6 @@ class TxtOrderService
 				$this->item($this->file_path($order), $item);
 			}
 		}
-
-		$this->zip();
-		Storage::deleteDirectory('txt-rian');
 	}
 
 	private function header($file_path, $order)
@@ -71,30 +68,13 @@ class TxtOrderService
 			mb_substr(addString(preg_replace('/[^0-9]/', '', $ipi), 5, '0'), 0, 5).
 			'0');
 	}
-	
-
-	public function zip()
-	{
-		$files = Storage::allFiles('txt-rian');
-		$zip_path = storage_path('app/txt-rian.zip'); 
-		$zip = new ZipArchive;
-		$zip->open($zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-		foreach ($files as $file) {
-			$zip->addFile(storage_path('app/'.$file), $file);
-		}
-		$zip->close();
-	}	
+		
 
 	private function file_path($order)
 	{
-		return 'txt-rian/'.addString($order->id, 7, '0') . '.txt';
+		return $this->path_base.'/'.addString($order->id, 7, '0') . '.txt';
 	}
 
 	
-
-	public function download()
-	{
-		return response()->download(storage_path('app/txt-rian.zip'))->deleteFileAfterSend();;
-	}
 
 }

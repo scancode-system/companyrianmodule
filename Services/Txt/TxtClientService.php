@@ -1,24 +1,22 @@
 <?php
 
-namespace Modules\CompanyRian\Services;
+namespace Modules\CompanyRian\Services\Txt;
 
 use Illuminate\Support\Facades\Storage;
 use Modules\Order\Repositories\OrderRepository;
 use Modules\Order\Entities\OrderClient;
+use Modules\Dashboard\Services\Txt\TxtService;
 use  ZipArchive;
 
-class TxtClientService 
+class TxtClientService extends TxtService
 {
 
-	public function run()
+	public function build()
 	{
-		Storage::delete('clientes-rian.txt');
-
 		$orders = OrderRepository::loadClosedOrders();
 		foreach ($orders as $order) {
-			Storage::append('clientes-rian.txt', $this->item($order->order_client));
+			Storage::append($this->path_base.$this->alias.'.txt', $this->item($order->order_client));
 		}
-
 	}
 
 	private function item(OrderClient $order_client)
@@ -40,11 +38,6 @@ class TxtClientService
 		mb_substr(addString('', 45, ' ', false), 0, 45).
 		mb_substr(addString('', 45, ' ', false), 0, 45).
 		mb_substr(addString($order_client->email, 45, ' ', false), 0, 45);
-	}
-
-	public function download()
-	{
-		return response()->download(storage_path('app/clientes-rian.txt'))->deleteFileAfterSend();;
 	}
 
 }
